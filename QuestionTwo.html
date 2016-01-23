@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!--
+ Developer : Mary Gichohi
+Add an option to cluster markers on the map (ie. markers close together are grouped into a single marker)
+-->
+<head>
+    <title>Mary - Ushahidi Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/leaflet.css" />
+    <script src="js/leaflet.js"></script>
+    <script src="js/jquery-2.2.0.min.js"></script>
+    <style type="text/css">
+        body#map {
+            width: 100%;
+            height: 800px;
+        }
+    </style>
+</head>
+<body id="map"> </body>
+<script type="text/javascript">
+        var counties = [];
+             
+    function draw_layers(json)
+    {
+        $.each(json, function (i, project) {
+            if (json[i]["Project Title"] != '0')
+            {
+                var this_county = json[i]["County"] + '';
+                this_county = this_county.toUpperCase();
+                if ($.inArray(this_county, counties) == -1 && this_county != "0")
+                    counties.push(this_county);
+            }
+        });
+        var jsonProjects = {};
+        for (var j = 0; j < counties.length; j++)
+        {
+            var projects = new L.LayerGroup();
+            $.each(json, function (i, project) {
+                var this_county = json[i]["County"] + '';
+                this_county = this_county.toUpperCase();
+                if (this_county == counties[j])
+                {
+                    var coordinates = project["Location2_Secondary"] + '';
+                    var split_coordinates = coordinates.split(",");
+                    if (split_coordinates.length == 2) {
+                        var lat, long;
+                        lat = split_coordinates[0].substring(1, split_coordinates[0].length - 1);
+                        long = split_coordinates[1].substring(0, split_coordinates[1].length - 2);
+                        var project = L.marker([lat, long]).bindPopup("<strong>Project Title:</strong>" + json[i]["Project Title"] + "<br /><br /><strong>Project Description:</strong>" + json[i]["Project Description"] + "<br /><br /><strong>Project Objectives:</strong>" + json[i]["Project Objectives"]);
+                        projects.addLayer(project);
+                    }
+                }
+            });
+            jsonProjects[counties[j]] = projects;
+            console.log(jsonProjects);
+        }
+        var mapboxAttribution = 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+                '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+                mapboxUrl = 'https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IjZjNmRjNzk3ZmE2MTcwOTEwMGY0MzU3YjUzOWFmNWZhIn0.Y8bhBaUMqFiPrDRW9hieoQ';
+
+        var grayscale = L.tileLayer(mapboxUrl, {id: 'mapbox.light', attribution: mapboxAttribution}),
+                streets = L.tileLayer(mapboxUrl, {id: 'mapbox.streets', attribution: mapboxAttribution});
+        var map = L.map('map', {
+            center: [0.377477, 37.623146],
+            zoom: 7,
+            layers: [grayscale, projects]
+        });
+        var baseMaps = {
+            "Grayscale": grayscale,
+            "Streets": streets
+        };
+
+
+        L.control.layers(baseMaps, jsonProjects).addTo(map);
+    }
+    $(document).ready(function () {
+        $.getJSON('projects.json', function (json) {
+            draw_layers(json);
+        });
+    })
+</script>
