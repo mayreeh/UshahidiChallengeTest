@@ -19,8 +19,8 @@ Add an option to cluster markers on the map (ie. markers close together are grou
 </head>
 <body id="map"> </body>
 <script type="text/javascript">
-        var counties = [];
-             
+    var counties = [];
+
     function draw_layers(json)
     {
         $.each(json, function (i, project) {
@@ -71,12 +71,11 @@ Add an option to cluster markers on the map (ie. markers close together are grou
             "Grayscale": grayscale,
             "Streets": streets
         };
-
-
         L.control.layers(baseMaps, jsonProjects).addTo(map);
     }
+
     $(document).ready(function () {
-        $.getJSON('projects.json', function (json) {
+       $.getJSON('projects.json', function (json) {
             draw_layers(json);
         });
     })
